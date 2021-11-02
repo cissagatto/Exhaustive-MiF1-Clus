@@ -112,4 +112,8 @@ This study is financed in part by the Coordenação de Aperfeiçoamento de Pesso
 
 [Twitter](https://twitter.com/professoracissa)
 
+## Report Error
+
+Please contact me: elainececiliagatto@gmail.com
+
 # Thanks
