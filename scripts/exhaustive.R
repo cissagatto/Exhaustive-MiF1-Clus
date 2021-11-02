@@ -142,11 +142,11 @@ cat("\nBPC \t nome: ", dataset_name)
 
 
 ##################################################################################################
-cat("\n\nCopy FROM google drive \n")
-destino = paste(FolderRoot, "/datasets/", dataset_name, sep="")
-origem = paste("cloud:elaine/Datasets/CrossValidation_WithValidation/", dataset_name, sep="")
-comando = paste("rclone -v copy ", origem, " ", destino, sep="")
-print(system(comando))
+# cat("\n\nCopy FROM google drive \n")
+# destino = paste(FolderRoot, "/datasets/", dataset_name, sep="")
+# origem = paste("cloud:elaine/Datasets/CrossValidation_WithValidation/", dataset_name, sep="")
+# comando = paste("rclone -v copy ", origem, " ", destino, sep="")
+# print(system(comando))
 
 
 ##################################################################################################
@@ -161,11 +161,11 @@ if(dir.exists(folderResults)==FALSE){
 
 
 ##################################################################################################
-cat("\n Copy partitions from google drive")
-destino = diretorios$folderBellPartDataset
-origem = paste("cloud:elaine/[2021]ResultadosExperimentos/BellPartitions/", dataset_name, sep="")
-comando0 = paste("rclone -v copy ", origem, " ", destino, sep="")
-print(system(comando0))
+# cat("\n Copy partitions from google drive")
+# destino = diretorios$folderBellPartDataset
+# origem = paste("cloud:elaine/[2021]ResultadosExperimentos/BellPartitions/", dataset_name, sep="")
+# comando0 = paste("rclone -v copy ", origem, " ", destino, sep="")
+# print(system(comando0))
 
 
 ##################################################################################################
@@ -245,8 +245,8 @@ cat("\n#########################################################################
 cat("\nTEST: delete folders")
 
 # apagando a pasta reports do dataset
-# str4 = paste("rm -r ", diretorios$folderReportsDataset, sep="")
-# print(system(str4))
+str4 = paste("rm -r ", diretorios$folderReportsDataset, sep="")
+print(system(str4))
 
 # apagando a pasta resultados na pasta temporaria
 str7 = paste("rm -r ", diretorios$folderResults, sep="")
