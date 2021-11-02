@@ -34,7 +34,7 @@ This source code consists of an R project for R Studio and the following R scrip
 <img src="https://github.com/cissagatto/Exhaustive-MacroF1-TVT/blob/main/images/Exhaustive-Horizontal.png" width="300">
 
 ## Folder Structure
-<img src="" width="300">
+<img src="https://github.com/cissagatto/Exhaustive-MicroF1-TVT/blob/main/images/estrutura.png" width="300">
 
 ## Preparing your experiment
 
