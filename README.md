@@ -1,4 +1,4 @@
-# Exhaustive MicroF1 Clus
+# Exhaustive Micro-F1 Clus
 
 This code is part of my doctoral research at PPG-CC/DC/UFSCar. The aim is built, validate and test random partitions for multilabel classification. Important, this code will execute on Windows and Linux.
 
