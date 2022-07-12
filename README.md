@@ -9,7 +9,7 @@ The figure shows an example with a dataset that generates 4140 partitions and is
 <img src="https://github.com/cissagatto/Exhaustive-MaF1-Clus/blob/main/images/exhaustive-clus.png" width="500">
 
 ## How to cite 
-@misc{Gatto2021, author = {Gatto, E. C.}, title = {Exhaustive Partition Experiment with Macro-F1}, year = {2021}, publisher = {GitHub}, journal = {GitHub repository}, howpublished = {\url{https://github.com/cissagatto/Exhaustive-MacroF1-TVT}}}
+@misc{Gatto2021, author = {Gatto, E. C.}, title = {Exhaustive Partition Experiment with Micro-F1}, year = {2021}, publisher = {GitHub}, journal = {GitHub repository}, howpublished = {\url{https://github.com/cissagatto/Exhaustive-MiF1-Clus}}}
 
 ## IMPORTANT!! PLEASE READ BEFORE RUNNING
 
