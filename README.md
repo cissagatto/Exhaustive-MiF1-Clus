@@ -6,7 +6,7 @@ The *exhaustive partitions* experiment differs from *oracle partitions*. In the 
 
 The figure shows an example with a dataset that generates 4140 partitions and is executed in 10-folds cross-validation.
 
-<img src="https://github.com/cissagatto/Exhaustive-MacroF1-TT/blob/main/images/exhaustive-clus.png" width="500">
+<img src="https://github.com/cissagatto/Exhaustive-MaF1-Clus/blob/main/images/exhaustive-clus.png" width="500">
 
 ## How to cite 
 @misc{Gatto2021, author = {Gatto, E. C.}, title = {Exhaustive Partition Experiment with Macro-F1}, year = {2021}, publisher = {GitHub}, journal = {GitHub repository}, howpublished = {\url{https://github.com/cissagatto/Exhaustive-MacroF1-TVT}}}
@@ -16,7 +16,7 @@ The figure shows an example with a dataset that generates 4140 partitions and is
 All of my experiments use the validation, train and set test. But, in this version, the code uses only the train and test sets and the validation set is ignored. This code was implemented thinking of that situation. Please, pay attention to this. You need to generated these sets when runing the multi-label cross-validation code.
 
 ## Types of Exhaustive Partitions
-<img src="https://github.com/cissagatto/Exhaustive-MacroF1-TVT/blob/main/images/tipos_particoes_exhaustiva.png" width="500">
+<img src="https://github.com/cissagatto/Exhaustive-MaF1-Clus/blob/main/images/tipos_particoes_exhaustiva.png" width="500">
 
 ## Scripts
 This source code consists of an R project for R Studio and the following R scripts:
@@ -28,13 +28,13 @@ This source code consists of an R project for R Studio and the following R scrip
 5. exhaustive
 
 ## Bell Partitions
-<img src="https://github.com/cissagatto/Exhaustive-MacroF1-TVT/blob/main/images/Bell-Partitions.png" width="300">
+<img src="https://github.com/cissagatto/Exhaustive-MaF1-Clus/blob/main/images/Bell-Partitions.png" width="300">
 
 ## FlowChart
-<img src="https://github.com/cissagatto/Exhaustive-MacroF1-TVT/blob/main/images/Exhaustive-Horizontal.png" width="300">
+<img src="https://github.com/cissagatto/Exhaustive-MaF1-Clus/blob/main/images/Exhaustive-Horizontal.png" width="300">
 
 ## Folder Structure
-<img src="https://github.com/cissagatto/Exhaustive-MicroF1-TVT/blob/main/images/estrutura.png" width="300">
+<img src="https://github.com/cissagatto/Exhaustive-MaF1-Clus/blob/main/images/estrutura.png" width="300">
 
 ## Preparing your experiment
 
@@ -48,10 +48,7 @@ After obtained the X-Fold Cross-Validation and put in the correct folder, you ne
 Confirms if the folder *utils* contains the following files: *Clus.jar*, *R_csv_2_arff.jar*, and *weka.jar*, and also the folder *lib* with *commons-math-1.0.jar*, *jgap.jar*, weka.jar and *Clus.jar.* Without these jars, the code not runs. 
 
 ### Step-4
-Place a copy of this code in _C:/Users/[username]/Exhaustive-MacroF1-TVT_ or _/home/[username]/Exhaustive-MacroF1-TVT_. Our files are configured to obtain the paths of the folders from this path. You can change this in the code if you want.
-
-### Step-5
-A file called _datasets.csv_ must be in the *datasets* folder. This file is used to read information about the datasets and they are used in the code. All 74 datasets available in Cometa are in this file. If you want to use another dataset, please, add the following information about the dataset in the file:
+A file called _datasets_original.csv_ must be in the *datasets* folder. This file is used to read information about the datasets and they are used in the code. All 74 datasets available in Cometa are in this file. If you want to use another dataset, please, add the following information about the dataset in the file:
 
 _Id, Name, Domain, Labels, Instances, Attributes, Inputs, Labelsets, Single, Max freq, Card, Dens, MeanIR, Scumble, TCS, AttStart, AttEnd, LabelStart, LabelEnd_
 
@@ -66,6 +63,8 @@ This code may or may not be executed in parallel, however, it is highly recommen
 Important: we used the CLUS classifier in this experiment. This implies generating all physical ARFF training and testing files for each of the generated partitions. Our code generates the partitions first in memory and then saves them into the HD. However, to avoid memory problems, immediately after saving to HD, the files are tested and then deleted. Even so, make sure you have enough space on your HD and enough available RAM for this procedure.
 
 # Run
+
+Enter the folder "~/Exhaustive-MiF1-Clus/R"  in a terminal and type:
 
 ```
 Rscript exhaustive.R [number_dataset] [number_cores] [number_folds]
@@ -113,6 +112,7 @@ This study is financed in part by the Coordenação de Aperfeiçoamento de Pesso
 [Twitter](https://twitter.com/cissagatto)
 
 [Twitch](https://www.twitch.tv/cissagatto)
+
 
 ## Report Error
 
