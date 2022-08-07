@@ -1,253 +1,399 @@
-cat("\n\n################################################################################################")
-cat("\n# START EXECUTE EXHAUSTIVE MICRO F1                                                              #")
-cat("\n##################################################################################################\n\n") 
+cat("\n\n################################################################")
+cat("\n# START EXECUTE EXHAUSTIVE MICRO F1 CLUS                         #")
+cat("\n##################################################################\n\n")
 
+
+# clean
 rm(list=ls())
 
-##################################################################################################
-# Exhaustive Partitions Micro F1                                                                 #
-# Copyright (C) 2021                                                                             #
-# JUNTA VALIDAÇÃO E TREINO                                                                       #
-#                                                                                                #
-# This code is free software: you can redistribute it and/or modify it under the terms of the    #
-# GNU General Public License as published by the Free Software Foundation, either version 3 of   #  
-# the License, or (at your option) any later version. This code is distributed in the hope       #
-# that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of         #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for    #
-# more details.                                                                                  #     
-#                                                                                                #
-# Elaine Cecilia Gatto | Prof. Dr. Ricardo Cerri | Prof. Dr. Mauri Ferrandin                     #
-# Federal University of Sao Carlos (UFSCar: https://www2.ufscar.br/) Campus Sao Carlos           #
-# Computer Department (DC: https://site.dc.ufscar.br/)                                           #
-# Program of Post Graduation in Computer Science (PPG-CC: http://ppgcc.dc.ufscar.br/)            #
-# Bioinformatics and Machine Learning Group (BIOMAL: http://www.biomal.ufscar.br/)               #
-#                                                                                                #
-##################################################################################################
 
-##################################################################################################
-# Script 
-##################################################################################################
+###############################################################################
+# Exhaustive Partitions Micro-F1 with Ensemble of Classifier Chain            #
+# Copyright (C) 2022                                                          #
+#                                                                             #
+# This code is free software: you can redistribute it and/or modify it under  #
+# the terms of the GNU General Public License as published by the Free        #
+# Software Foundation, either version 3 of the License, or (at your option)   #
+# any later version. This code is distributed in the hope that it will be     #
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of      #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General    #
+# Public License for more details.                                            #
+#                                                                             #
+# Elaine Cecilia Gatto | Prof. Dr. Ricardo Cerri | Prof. Dr. Mauri Ferrandin  #
+# Federal University of Sao Carlos (UFSCar: https://www2.ufscar.br/) |        #
+# Campus Sao Carlos | Computer Department (DC: https://site.dc.ufscar.br/)    #
+# Program of Post Graduation in Computer Science                              #
+# (PPG-CC: http://ppgcc.dc.ufscar.br/) | Bioinformatics and Machine Learning  #
+# Group (BIOMAL: http://www.biomal.ufscar.br/)                                #
+###############################################################################
 
-##################################################################################################
-# Configures the workspace according to the operating system                                     #
-##################################################################################################
+
+
+###############################################################################
+# SET WORKSAPCE                                                               #
+###############################################################################
 FolderRoot = "~/Exhaustive-MiF1-Clus"
-FolderScripts = paste(FolderRoot, "/R", sep="")
+FolderScripts = "~/Exhaustive-MiF1-Clus/R"
 
 
-##################################################################################################
-# LOAD MAIN.R                                                                                     #
-##################################################################################################
+###############################################################################
+# LOAD INTERNAL SCRIPTS                                                       #
+###############################################################################
+
+# PACKAGES/LIBRARIES
 setwd(FolderScripts)
-source("libraries.R") 
+source("libraries.R")
 
+# FOLDERS AND UTILITIES
 setwd(FolderScripts)
-source("utils.R") 
+source("utils.R")
 
+# PARTITION VALIDATION
 setwd(FolderScripts)
 source("validation.R")
 
+# BEST PARTITION TEST
 setwd(FolderScripts)
 source("test.R")
 
 
-##################################################################################################
-# Options Configuration                                                                          #
-##################################################################################################
-options(java.parameters = "-Xmx64g")
-options(show.error.messages = TRUE)
-options(scipen=30)
+
+###############################################################################
+# R Options Configuration                                                     #
+###############################################################################
+options(java.parameters = "-Xmx64g")  # JAVA
+options(show.error.messages = TRUE)   # ERROR MESSAGES
+options(scipen=20)                    # number of places after the comma
 
 
 
-##################################################################################################
-# Read the dataset file with the information for each dataset                                    #
-##################################################################################################
+###############################################################################
+# Reading the "datasets-original.csv" file to get dataset information         #
+# for code execution!                                                         #
+###############################################################################
 setwd(FolderRoot)
 datasets <- data.frame(read.csv("datasets-original.csv"))
 
 
 
-##################################################################################################
-# ARGS COMMAND LINE                                                                              #
-##################################################################################################
-cat("\nGet Args")
+###############################################################################
+# ARGS COMMAND LINE                                                          #
+###############################################################################
+cat("\n#####################################")
+cat("\n# GET ARGUMENTS FROM COMMAND LINE   #")
+cat("\n#####################################\n\n")
 args <- commandArgs(TRUE)
 
 
 
-##################################################################################################
-# Get dataset information                                                                        #
-##################################################################################################
-ds <- datasets[args[1],]
+###############################################################################
+# FIRST ARGUMENT: getting specific dataset information being processed        #
+# from csv file                                                               #
+###############################################################################
+
+#config_file = "/home/cissa/Exhaustive-MiF1-Clus/EMiC-Config-Files/EMiC-GpositiveGO.csv"
+
+config_file <- args[1]
 
 
-##################################################################################################
-# Get dataset information                                                                        #
-##################################################################################################
-number_dataset <- as.numeric(args[1])
-cat("\nBPC \t number_dataset: ", number_dataset)
-
-
-
-##################################################################################################
-# Get the number of cores                                                                        #
-##################################################################################################
-number_cores <- as.numeric(args[2])
-cat("\nBPC \t cores: ", number_cores)
-
-
-
-##################################################################################################
-# Get the number of folds                                                                        #
-##################################################################################################
-number_folds <- as.numeric(args[3])
-cat("\nBPC \t folds: ", number_folds)
-
-
-
-##################################################################################################
-# Get the number of folds                                                                        #
-##################################################################################################
-folderResults <- toString(args[4])
-cat("\nBPC \t  folder: ", folderResults)
-
-
-
-##################################################################################################
-# Get dataset name                                                                               #
-##################################################################################################
-dataset_name <- toString(ds$Name) 
-cat("\nBPC \t nome: ", dataset_name)
-
-
-
-##################################################################################################
-# DON'T RUN -- it's only for test the code
-# ds <- datasets[42,]
-# dataset_name = ds$Name
-# number_dataset = ds$Id
-# number_cores = 10
-# number_folds = 10
-# folderResults = "/dev/shm/res"
-##################################################################################################
-
-
-##################################################################################################
-diretorios = directories(dataset_name, folderResults)
-
-cat("\nDESCOMPACTANDO DATASETS")
-str27 = paste("tar xzf ", diretorios$folderDatasets ,
-              "/", ds$Name, ".tar.gz -C ",
-              diretorios$folderDatasets, sep="")
-res=system(str27)
-if(res!=0){break}else{cat("\ndescompactou")}
-
-
-cat("\n APAGANDO TAR")
-str28 = paste("rm ", diretorios$folderDatasets, "/",
-              ds$Name, ".tar.gz", sep="")
-res=system(str28)
-if(res!=0){break}else{cat("\napagou")}
-
-
-cat("\nDESCOMPACTANDO BELL PARTITION")
-str27 = paste("tar xzf ", diretorios$folderBellPart ,
-              "/", ds$Name, ".tar.gz -C ",
-              diretorios$folderBellPart, sep="")
-res=system(str27)
-if(res!=0){break}else{cat("\ndescompactou")}
-
-
-cat("\n APAGANDO TAR")
-str28 = paste("rm ", diretorios$folderBellPart, "/",
-              ds$Name, ".tar.gz", sep="")
-res=system(str28)
-if(res!=0){break}else{cat("\napagou")}
-
-
-
-##################################################################################################
-cat("\nCreate Folder")
-if(dir.exists(folderResults)==FALSE){
-  dir.create(folderResults)
+if(file.exists(config_file)==FALSE){
+  cat("\n################################################################")
+  cat("#\n Missing Config File! Verify the following path:              #")
+  cat("#\n ", config_file, "                                            #")
+  cat("#################################################################\n\n")
+  break
+} else {
+  cat("\n########################################")
+  cat("\n# Properly loaded configuration file!  #")
+  cat("\n########################################\n\n")
 }
 
-##################################################################################################
-# Get the number of bell partitions                                                              # 
-##################################################################################################
-setwd(diretorios$folderBellPartDataset)
-str_ = paste(dataset_name, "-groupsPerPartitions.csv", sep="")
-bell = data.frame(read.csv(str_))
-n_bell = nrow(bell)
 
- 
-##################################################################################################
-# VALIDATION                                                                                     # 
-##################################################################################################
-cat("\n\n################################################################################################")
-cat("\nSTART VALIDATE EXHAUSTIVE PARTITIONS                                                             #")
-timeVAl = system.time(resVAl <- validateRUN(number_dataset, number_cores, number_folds, folderResults))
+cat("\n########################################")
+cat("\n# Config File                          #\n")
+config = data.frame(read.csv(config_file))
+print(config)
+cat("\n########################################\n\n")
 
-cat("\nVALIDATION: Delete all files")
-str0 = paste("rm -r ", diretorios$folderResults, sep="")
-system(str0)
+dataset_path = toString(config$Value[1])
+dataset_path = str_remove(dataset_path, pattern = " ")
 
-cat("\nEND VALIDATE EXHAUSTIVE PARTITIONS                                                               #")
-cat("\n##################################################################################################")
+folderResults = toString(config$Value[2])
+folderResults = str_remove(folderResults, pattern = " ")
+
+bell_partitions_path = toString(config$Value[3])
+bell_partitions_path = str_remove(bell_partitions_path , pattern = " ")
+
+dataset_name = toString(config$Value[4])
+dataset_name = str_remove(dataset_name, pattern = " ")
+
+number_dataset = as.numeric(config$Value[5])
+number_folds = as.numeric(config$Value[6])
+number_cores = as.numeric(config$Value[7])
+
+ds = datasets[number_dataset,]
 
 
-##################################################################################################
-# TEST                                                                                           # 
-##################################################################################################
+cat("\n################################################################\n")
+print(ds)
+cat("\n# DATASET PATH: \t", dataset_path)
+cat("\n# TEMPORARY PATH: \t", folderResults)
+cat("\n# BELL PARTITIONS PATH: \t", bell_partitions_path)
+cat("\n# DATASET NAME:  \t", dataset_name)
+cat("\n# NUMBER DATASET: \t", number_dataset)
+cat("\n# NUMBER X-FOLDS CROSS-VALIDATION: \t", number_folds)
+cat("\n# NUMBER CORES: \t", number_cores)
+cat("\n################################################################\n\n")
 
-cat("\n\n################################################################################################")
-cat("\nSTART TEST EXHAUSTIVE PARTITIONS                                                                 #")
 
-if(dir.exists(folderResults)==FALSE){
-  dir.create(folderResults)
-}
+###############################################################################
+# Creating temporary processing folder                                        #
+###############################################################################
+if (dir.exists(folderResults) == FALSE) {dir.create(folderResults)}
 
+
+###############################################################################
+# Creating all directories that will be needed for code processing            #
+###############################################################################
+cat("\n######################")
+cat("\n# Get directories    #")
+cat("\n######################\n")
 diretorios <- directories(dataset_name, folderResults)
+print(diretorios)
+cat("\n\n")
 
 
-timeTEST = system.time(resTest <- testRUN(number_dataset, number_cores, number_folds, folderResults))
+###############################################################################
+# Copying datasets from ROOT folder on server                                 #
+###############################################################################
+
+cat("\n####################################################################")
+cat("\n# Checking the dataset tar.gz file                                 #")
+cat("\n####################################################################\n\n")
+str00 = paste(dataset_path, "/", ds$Name,".tar.gz", sep = "")
+str00 = str_remove(str00, pattern = " ")
+
+if(file.exists(str00)==FALSE){
+
+  cat("\n######################################################################")
+  cat("\n# The tar.gz file for the dataset to be processed does not exist!    #")
+  cat("\n# Please pass the path of the tar.gz file in the configuration file! #")
+  cat("\n# The path entered was: ", str00, "                                  #")
+  cat("\n######################################################################\n\n")
+  break
+
+} else {
+
+  cat("\n####################################################################")
+  cat("\n# tar.gz file of the dataset loaded correctly!                     #")
+  cat("\n####################################################################\n\n")
+
+  # COPIANDO
+  str01 = paste("cp ", str00, " ", diretorios$folderDataset, sep = "")
+  res = system(str01)
+  if (res != 0) {
+    cat("\nError: ", str01)
+    break
+  }
+
+  # DESCOMPACTANDO
+  str02 = paste("tar xzf ", diretorios$folderDataset, "/", ds$Name,
+                ".tar.gz -C ", diretorios$folderDataset, sep = "")
+  res = system(str02)
+  if (res != 0) {
+    cat("\nError: ", str02)
+    break
+  }
+
+  #APAGANDO
+  str03 = paste("rm ", diretorios$folderDataset, "/", ds$Name,
+                ".tar.gz", sep = "")
+  res = system(str03)
+  if (res != 0) {
+    cat("\nError: ", str03)
+    break
+  }
+
+}
 
 
-cat("\nTEST: Save results in RS format\n")
-str2a <- paste(dataset_name, "-all-results-test.rds", sep="")
-setwd(diretorios$folderReTest)
-save(resTest, file = str2a)
 
-cat("\nVALIDATION: Delete all files")
-str0 = paste("rm -r ", diretorios$folderResults, sep="")
-system(str0)
+###############################################################################
+# copying partitions from ROOT folder on server                               #
+###############################################################################
 
-
-cat("\nEND TEST EXHAUSTIVE PARTITIONS                                                                   #")
-cat("\n##################################################################################################")
-
-cat("\nTEST: delete folders")
-
-# apagando a pasta reports do dataset
-str4 = paste("rm -r ", diretorios$folderDatasets, "/", ds$Name,  sep="")
-print(system(str4))
-
-# apagando a pasta das partições BELL do dataset
-str8 = paste("rm -r ", diretorios$folderBellPartDataset, sep="")
-print(system(str8))
+cat("\n####################################################################")
+cat("\n# Checking the all partitions (bell partitions) tar.gz file        #")
+cat("\n####################################################################\n\n")
+str00 = paste(bell_partitions_path, "/", ds$Name,".tar.gz", sep = "")
+str00 = str_remove(str00, pattern = " ")
 
 
-cat("\n##################################################################################################")
-cat("\n# END OF EXHAUSTIVE PARTITIONS. Thanks God!                                                      #") 
-cat("\n##################################################################################################")
-cat("\n\n\n\n") 
+if(file.exists(str00)==FALSE){
+
+  cat("\n######################################################################")
+  cat("\n# The tar.gz file for the partitions to be processed does not exist! #")
+  cat("\n# Please pass the path of the tar.gz file in the configuration file! #")
+  cat("\n# The path entered was: ", str00,  "                                 #")
+  cat("\n######################################################################\n\n")
+  break
+
+} else{
+
+  cat("\n####################################################################")
+  cat("\n# tar.gz file of the partitions loaded correctly!                  #")
+  cat("\n####################################################################\n\n")
+
+  # COPIANDO
+  str01 = paste("cp ", str00, " ", diretorios$folderResults, sep = "")
+  res = system(str01)
+  if (res != 0) {
+    cat("\nError: ", str01)
+    break
+  }
+
+  # DESCOMPACTANDO
+  str02 = paste("tar xzf ", diretorios$folderResults, "/", ds$Name,
+                ".tar.gz -C ", diretorios$folderBellPart, sep = "")
+  res = system(str02)
+  if (res != 0) {
+    cat("\nError: ", str02)
+    break
+  }
+
+  # APAGANDO
+  str03 = paste("rm ", diretorios$folderResults, "/",
+                ds$Name, ".tar.gz", sep = "")
+  res = system(str03)
+  if (res != 0) {
+    cat("\nError: ", str03)
+    break
+  }
+
+}
+
+
+
+###############################################################################
+# Getting the total number of possible partitions for the specific dataset    #
+###############################################################################
+setwd(diretorios$folderBellPartDataset)
+str_ = paste(dataset_name, "-groupsPerPartitions.csv", sep = "")
+bell = data.frame(read.csv(str_))
+n = nrow(bell)
+
+
+
+###############################################################################
+#                             VALIDATION                                      #
+###############################################################################
+
+cat("\n\n################################################################")
+cat("\n# START VALIDATION EXHAUSTIVE PARTITIONS Macro-F1 Clus           #")
+cat("\n##################################################################\n\n")
+
+# VALIDATION
+timeVAl = system.time(resVAl <- validateRUN(ds,
+                                            dataset_name,
+                                            number_dataset,
+                                            number_cores,
+                                            number_folds,
+                                            folderResults))
+# SAVING RUNTIME
+result_set <- t(data.matrix(timeVAl))
+
+setwd(diretorios$folderValidate)
+write.csv(result_set, "Validate-Runtime.csv")
+
+setwd(diretorios$folderReportsD)
+write.csv(result_set, "Validate-Runtime.csv")
+
+cat("\n\n################################################################")
+cat("\n# END VALIDATION EXHAUSTIVE PARTITIONS Micro-F1 ECC              #")
+cat("\n##################################################################\n\n")
+
+
+###############################################################################
+#                                        TEST                                 #
+###############################################################################
+
+cat("\n\n################################################################")
+cat("\n# START TESTING THE BEST CHOSEN PARTITION                        #")
+cat("\n##################################################################\n\n")
+
+# test
+timeTEST = system.time(resTest <- test(ds,
+                                       dataset_name,
+                                       number_cores,
+                                       number_folds,
+                                       namesLabels,
+                                       folderResults))
+
+
+
+# SAVING RUNTIME
+result_set <- t(data.matrix(timeTEST))
+
+setwd(diretorios$folderTest)
+write.csv(result_set, "Tested-Runtime.csv")
+
+setwd(diretorios$folderReportsD)
+write.csv(result_set, "Tested-Runtime.csv")
+
+
+# cat("\n\n################################################################")
+# cat("\n# COPY TEST TO GOOGLE DRIVE                                      #")
+# cat("\n##################################################################\n\n")
+# origem = diretorios$folderTest
+# destino = paste("nuvem:Clus/Exhaustive/MaF1/",
+#                 dataset_name, "/Test/", sep = "")
+# comando = paste("rclone -P copy ", origem, " ", destino, sep = "")
+# cat("\n", comando, "\n")
+# a = print(system(comando))
+# a = as.numeric(a)
+# if (a != 0) {
+#   stop("Erro RCLONE")
+#   quit("yes")
+# }
+
+
+cat("\n\n###########################################################")
+cat("\n# TEST: Compress folders and files                           #")
+cat("\n#############################################################\n\n")
+str3a <- paste("tar -zcf ", diretorios$folderTest, "/",
+               dataset_name, "-test-results.tar.gz ", 
+               diretorios$folderTest, 
+               sep="")
+system(str3a)
+
+
+cat("\n\n###########################################################")
+cat("\n# TEST: Copy zip file to the root results folder            #")
+cat("\n#############################################################\n\n")
+str5a = paste("cp ", diretorios$folderTest, "/",
+              dataset_name, "-test-results.tar.gz ",  
+              diretorios$folderReportsD, sep="")
+system(str5a)
+
+
+cat("\n\n###################################################################")
+cat("\n# DELETE FILES                                                     #")
+cat("\n#####################################################################\n\n")
+str5 = paste("rm -r ", diretorios$folderResults, sep="")
+print(system(str5))
+
+
+
+cat("\n###################################################################")
+cat("\n# END OF EXHAUSTIVE PARTITIONS Micro-F1 CLUS. Thanks God!         #")
+cat("\n###################################################################\n\n")
+cat("\n\n\n\n")
 
 gc()
 
 rm(list=ls())
 
-##################################################################################################
-# Please, any errors, contact us: elainececiliagatto@gmail.com                                   #
-# Thank you very much!                                                                           #
-##################################################################################################
+#########################################################################
+# Please, any errors, contact us: elainececiliagatto@gmail.com           
+# Thank you very much!                                                   
+#########################################################################

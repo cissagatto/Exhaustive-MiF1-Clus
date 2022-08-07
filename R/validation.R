@@ -1,121 +1,119 @@
-##################################################################################################
-# Exhaustive Partitions Micro F1                                                                 #
-# Copyright (C) 2021                                                                             #
-# JUNTA VALIDAÇÃO E TREINO                                                                       #
-#                                                                                                #
-# This code is free software: you can redistribute it and/or modify it under the terms of the    #
-# GNU General Public License as published by the Free Software Foundation, either version 3 of   #  
-# the License, or (at your option) any later version. This code is distributed in the hope       #
-# that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of         #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for    #
-# more details.                                                                                  #     
-#                                                                                                #
-# Elaine Cecilia Gatto | Prof. Dr. Ricardo Cerri | Prof. Dr. Mauri Ferrandin                     #
-# Federal University of Sao Carlos (UFSCar: https://www2.ufscar.br/) Campus Sao Carlos           #
-# Computer Department (DC: https://site.dc.ufscar.br/)                                           #
-# Program of Post Graduation in Computer Science (PPG-CC: http://ppgcc.dc.ufscar.br/)            #
-# Bioinformatics and Machine Learning Group (BIOMAL: http://www.biomal.ufscar.br/)               #
-#                                                                                                #
-##################################################################################################
+###############################################################################
+# Exhaustive Partitions Micro-F1 with Ensemble of Classifier Chain            #
+# Copyright (C) 2022                                                          #
+#                                                                             #
+# This code is free software: you can redistribute it and/or modify it under  #
+# the terms of the GNU General Public License as published by the Free        #
+# Software Foundation, either version 3 of the License, or (at your option)   #
+# any later version. This code is distributed in the hope that it will be     #
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of      #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General    #
+# Public License for more details.                                            #
+#                                                                             #
+# Elaine Cecilia Gatto | Prof. Dr. Ricardo Cerri | Prof. Dr. Mauri Ferrandin  #
+# Federal University of Sao Carlos (UFSCar: https://www2.ufscar.br/) |        #
+# Campus Sao Carlos | Computer Department (DC: https://site.dc.ufscar.br/)    #
+# Program of Post Graduation in Computer Science                              #
+# (PPG-CC: http://ppgcc.dc.ufscar.br/) | Bioinformatics and Machine Learning  #
+# Group (BIOMAL: http://www.biomal.ufscar.br/)                                #
+###############################################################################
 
-##################################################################################################
-# Script 
-##################################################################################################
 
-##################################################################################################
-# Configures the workspace according to the operating system                                     #
-##################################################################################################
+
+###############################################################################
+# SET WORKSAPCE                                                               #
+###############################################################################
 FolderRoot = "~/Exhaustive-MiF1-Clus"
-FolderScripts = paste(FolderRoot, "/R", sep="")
+FolderScripts = "~/Exhaustive-MiF1-Clus/R"
 
 
-##################################################################################################
-#                                                                               
-##################################################################################################
-validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, folderResults){
+
+###############################################################################
+# 
+###############################################################################
+validationEP <- function(id_part, 
+                         ds, 
+                         dataset_name, 
+                         number_folds, 
+                         namesLabels, 
+                         folderResults){
   
   diretorios <- directories(dataset_name, folderResults)
-  
-  retorno = list()
-  
-  # get bell partition information
   info <- infoPartitions(id_part, dataset_name, folderResults)
+  FolderPartition = paste(diretorios$folderValidate, 
+                          "/Partition-", id_part, sep="")
   
-  # create the specific folder 
-  FolderPartition = paste(diretorios$folderResults, "/Partition-", info$numberOfPartition, sep="")
-  
-  if(dir.exists(FolderPartition)==FALSE){
-    dir.create(FolderPartition)
-  }
-  
-  # start build partitions
-  # from fold 1 to last partition
   f = 1
-  #buildBellPartitions <- foreach(f = 1:number_folds) %dopar% {
-  while(f<=10){
+  buildBellPartitions <- foreach(f = 1:number_folds) %dopar% {
+  #while(f<=number_folds){
     
-    cat("\nFold: ", f)   
-    ############################################################################################################
-    # SET WORKSPACE
+    cat("\n#===============================================================#")
+    cat("\n# Fold: ", f)   
+    cat("\n#===============================================================#")
+    
+    #########################################################################
     FolderRoot = "~/Exhaustive-MiF1-Clus"
-    FolderScripts = paste(FolderRoot, "/R", sep="")
+    FolderScripts = "~/Exhaustive-MiF1-Clus/R"
+    
+    
+    #########################################################################
+    # LOAD LIBRARIES
+    setwd(FolderScripts)
+    source("libraries.R") 
     
     setwd(FolderScripts)
-    source("utils.R")
+    source("utils.R") 
     
-    setwd(FolderScripts)
-    source("libraries.R")
-    
-    ############################################################################################################
+    #########################################################################
     FolderSplit = paste(FolderPartition, "/Split-", f, sep="")
-    if(dir.exists(FolderSplit)==FALSE){
-      dir.create(FolderSplit)
-    }
+    if(dir.exists(FolderSplit)==FALSE){dir.create(FolderSplit)}
     
-    ############################################################################################################
+    
+    #########################################################################
+    # get bell partition information
+    info = infoPartitions(id_part, dataset_name, folderResults)
+    
+    
+    ########################################################################
     converteArff <- function(arg1, arg2, arg3, FolderUtils){  
-      str = paste("java -jar ", diretorios$folderUtils, "/R_csv_2_arff.jar ", arg1, " ", arg2, " ", arg3, sep="")
+      str = paste("java -jar ", diretorios$folderUtils, 
+                  "/R_csv_2_arff.jar ", arg1, " ", arg2, " ", arg3, sep="")
       print(system(str))
       cat("\n\n")  
     }
     
-    # get bell partition information
-    info = infoPartitions(id_part, dataset_name, folderResults)
     
     g = 1
     while(g<=info$numberGroupsOfPartition){
       
-      ####################################################################################
-      library("foreign")
       
-      ####################################################################################
+      ########################################################################
       nome_particao = paste("partition_", info$numberOfPartition, sep="")
       nome_grupo = paste("group_", g, sep="")
       cat("\n\tPartition: ", nome_particao)
       cat("\n\tGroup: ", nome_grupo)
       
-      ####################################################################################
+      ########################################################################
       nomeTR = paste(dataset_name, "-Split-Tr-", f, ".csv", sep="")
       nomeVL = paste(dataset_name, "-Split-Vl-", f, ".csv", sep="")
       
-      ####################################################################################
+      ########################################################################
       nome_grupo_2 = paste("Group-", g, sep="")
       FolderGroup = paste(FolderSplit , "/", nome_grupo_2, sep="")
-      if(dir.exists(FolderGroup)==FALSE){
-        dir.create(FolderGroup)  
-      } 
+      if(dir.exists(FolderGroup)==FALSE){dir.create(FolderGroup)} 
       
-      ####################################################################################
+      ########################################################################
       # get the labels of this group
       specificPartition = info$specificPartition
-      specificGroup = specificPartition %>% filter(., specificPartition$group == g)
+      specificGroup = specificPartition %>% 
+        filter(., specificPartition$group == g)
       
-      ####################################################################################
+      ########################################################################
       # total de rótulos neste grupo
       totalLabelsThisGr = nrow(specificGroup)
       
-      ####################################################################################
-      cat("\n\t\tTRAIN: Creating File\n")
+      ########################################################################
+      #cat("\n\t\tTRAIN: Creating File\n")
       setwd(diretorios$folderCVTR)
       nomeTr2 = paste(diretorios$folderCVTR, "/", nomeTR, sep="")
       arquivoTR = data.frame(read.csv(nomeTr2))
@@ -123,14 +121,14 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
       classesTR = select(arquivoTR, specificGroup$labels)
       thisGroupTR = cbind(atributosTR, classesTR)
       
-      ####################################################################################
+      ########################################################################
       # TRAIN: Save CSV
       nomeCsTr = paste(FolderGroup, "/grupo_Tr_", g, ".csv", sep="")
       nomeArTr = paste(FolderGroup, "/grupo_Tr_", g, ".arff", sep="")
       setwd(FolderGroup)
       write.csv(thisGroupTR, nomeCsTr, row.names = FALSE)
       
-      ####################################################################################
+      ########################################################################
       # Targets
       inicio = ds$LabelStart
       fim = ncol(thisGroupTR)
@@ -138,7 +136,7 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
       setwd(FolderGroup)
       write.csv(ifr, "inicioFimRotulos.csv", row.names = FALSE)
       
-      ####################################################################################
+      ########################################################################
       # TRAIN: Convert CSV to ARFF
       setwd(FolderGroup)
       arg1Tr = nomeCsTr
@@ -146,12 +144,12 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
       arg3Tr = paste(inicio, "-", fim, sep="")
       converteArff(arg1Tr, arg2Tr, arg3Tr, diretorios$folderUtils)
       
-      ####################################################################################
+      ########################################################################
       str0 = paste("sed -i 's/{0}/{0,1}/g;s/{1}/{0,1}/g' ", nomeArTr, sep="")
       print(system(str0))
       
-      ####################################################################################
-      cat("\n\t\tVALIDATION: Creating File\n")
+      ########################################################################
+      #cat("\n\t\tVALIDATION: Creating File\n")
       setwd(diretorios$folderCVVL)
       nomeVl2 = paste(diretorios$folderCVVL, "/", nomeVL, sep="")
       arquivoVL = data.frame(read.csv(nomeVl2))
@@ -159,14 +157,14 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
       classesVL = select(arquivoVL, specificGroup$labels)
       thisGroupVL = cbind(atributosVL, classesVL)
       
-      ####################################################################################
+      ########################################################################
       #VALIDATION: Save CSV
       nomeCsVl = paste(FolderGroup, "/grupo_Vl_", g, ".csv", sep="")
       nomeArVl = paste(FolderGroup, "/grupo_Vl_", g, ".arff", sep="")
       setwd(FolderGroup)
       write.csv(thisGroupVL, nomeCsVl, row.names = FALSE)
       
-      ####################################################################################
+      ########################################################################
       # TEST: Convert CSV to ARFF
       setwd(FolderGroup)
       arg1Vl = nomeCsVl
@@ -174,11 +172,11 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
       arg3Vl = paste(inicio, "-", fim, sep="")
       converteArff(arg1Vl, arg2Vl, arg3Vl, diretorios$folderUtils)
       
-      ####################################################################################
+      ########################################################################
       str1 = paste("sed -i 's/{0}/{0,1}/g;s/{1}/{0,1}/g' ", nomeArVl, sep="")
       print(system(str1))
       
-      ####################################################################################
+      ########################################################################
       # Creating .s file for Clus
       setwd(FolderGroup)
       
@@ -221,40 +219,40 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
       cat("\n")
       sink()
       
-      ####################################################################################
+      ########################################################################
       # Execute CLUS
       nome_config2 = paste(FolderGroup, "/", nome_config, sep="")
       setwd(FolderGroup)      
-      str = paste("java -jar ", diretorios$folderUtils, "/Clus.jar ", nome_config2, sep="")
+      str = paste("java -jar ", diretorios$folderUtils, "/Clus.jar ", 
+                  nome_config2, sep="")
       print(system(str))
       
-      ####################################################################################
+      ########################################################################
       # Open inicioFimRotulos.csv
       targets = data.frame(read.csv("inicioFimRotulos.csv"))
       
-      ####################################################################################
+      ########################################################################
       # Open predictions
       setwd(FolderGroup)
       #library("foreign")
       namae2 = paste(FolderGroup, "/grupo_", g, ".test.pred.arff", sep="")
       predicoes = data.frame(foreign::read.arff(namae2))
       
-      ####################################################################################
+      ########################################################################
       # Split Y True and Y Predicts
       
       if(targets$inicio == targets$fim){
         
-        library("foreign")
         cat("\n\t\t\tOnly one label in this group\n")
         
-        ####################################################################################
+        ########################################################################
         # Save Y_True
         setwd(FolderGroup)
         classes = data.frame(predicoes[,1])
         names(classes) = colnames(predicoes)[1]
         write.csv(classes, "y_true.csv", row.names = FALSE)
         
-        ####################################################################################
+        ########################################################################
         # Save Y_Predict
         rot = paste("Pruned.p.", colnames(predicoes)[1], sep="")
         pred = data.frame(predicoes[,rot])
@@ -262,7 +260,7 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
         setwd(FolderGroup)
         write.csv(pred, "y_predict.csv", row.names = FALSE)
         
-        ####################################################################################
+        ########################################################################
         rotulos = c(colnames(classes))
         n_r = length(rotulos)
         
@@ -270,19 +268,18 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
         
       } else {
         
-        library("foreign")
         
-        ####################################################################################
+        ########################################################################
         # More than one label in this group
         comeco = 1+(targets$fim - targets$inicio)
         
-        ####################################################################################
+        ########################################################################
         # Save Y_true
         classes = data.frame(predicoes[,1:comeco])
         setwd(FolderGroup)
         write.csv(classes, "y_true.csv", row.names = FALSE)
         
-        ####################################################################################
+        ########################################################################
         # Save Y_Predict
         rotulos = c(colnames(classes))
         n_r = length(rotulos)
@@ -301,7 +298,7 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
         gc()
       } # END ELSE
       
-      ########################################################################################################################
+      ########################################################################
       nome1 = paste("grupo_Tr_", g, ".arff", sep="")
       nome2 = paste("grupo_Vl_", g, ".arff", sep="")
       nome3 = paste("grupo_Tr_", g, ".csv", sep="")
@@ -317,89 +314,111 @@ validationEP <- function(id_part, ds, dataset_name, number_folds, namesLabels, f
       unlink(nome5, recursive = TRUE)
       unlink(nome6, recursive = TRUE)
       
-      ########################################################################################################################
+      ########################################################################
       # count
       g = g + 1
       
       gc()
     } # END GROUP
     
-    f = f + 1
+    #f = f + 1
     gc()
   }
   
-  ########################################################################################################################
-  # return
-  retorno$id_part = id_part
-  retorno$ds = ds
-  retorno$dataset_name = dataset_name
-  retorno$number_folds = number_folds
-  retorno$namesLabels = namesLabels
-  retorno$infoPartition = info
-  return(retorno)
   
   gc()
-  cat("\n##################################################################################################")
-  cat("\n# Build and Test Partitions: END                                                                 #") 
-  cat("\n##################################################################################################")
+  cat("\n################################################################")
+  cat("\n# Build and Test Partitions: END                               #") 
+  cat("\n################################################################")
   cat("\n\n\n\n")
 }
 
 
-##################################################################################################
-# FUNCTION GATHER PREDICTS HYBRID PARTITIONS                                                     #
-#   Objective                                                                                    #
-#      From the file "test.pred.arff", separates the real labels and the predicted labels to     # 
-#      generate the confusion matrix to evaluate the partition.                                  #
-#   Parameters                                                                                   #
-#       ds: specific dataset information                                                         #
-#       dataset_name: dataset name. It is used to save files.                                    #
-#       number_folds: number of folds created                                                    #
-#       FolderHybrid: path of hybrid partition results                                           #
-#   Return                                                                                       #
-#       true labels and predicts labels                                                          #
-##################################################################################################
-gather <- function(id_part, ds, dataset_name, n, namesLabels, folderResults){
-  
-  retorno = list()
+##############################################################################
+# FUNCTION GATHER PREDICTS HYBRID PARTITIONS       
+#   Objective                                                
+#      From the file "test.pred.arff", separates the real labels and 
+# the predicted labels to generate the confusion matrix to 
+# evaluate the partition
+#   Parameters                                               
+#       ds: specific dataset information    
+#       dataset_name: dataset name. It is used to save files.
+#       number_folds: number of folds created                
+#       FolderHybrid: path of hybrid partition results       
+#   Return                                                   
+#       true labels and predicts labels                      
+############################################################################
+gather <- function(id_part, 
+                   ds, 
+                   dataset_name, 
+                   number_folds, 
+                   namesLabels, 
+                   folderResults){
   
   diretorios <- directories(dataset_name, folderResults)
+  info <- infoPartitions(id_part, dataset_name, folderResults)
+  FolderPartition = paste(diretorios$folderValidate, 
+                          "/Partition-", id_part, sep="")
   
-  info <- infoPartitions(id_part,dataset_name, folderResults)
-  
-  # start build partitions
-  # do fold 1 até o último fold
   f = 1
   gatherParal <- foreach(f = 1:number_folds) %dopar%{
+  #while(f<=number_folds){
+    
+    cat("\n#===============================================================#")
+    cat("\n# Fold: ", f)   
+    cat("\n#===============================================================#")
+    
+    #########################################################################
+    FolderRoot = "~/Exhaustive-MiF1-Clus"
+    FolderScripts = "~/Exhaustive-MiF1-Clus/R"
+    
+    
+    #########################################################################
+    # LOAD LIBRARIES
+    setwd(FolderScripts)
+    source("libraries.R") 
+    
+    setwd(FolderScripts)
+    source("utils.R") 
+    
+    #########################################################################
+    FolderSplit = paste(FolderPartition, "/Split-", f, sep="")
+    if(dir.exists(FolderSplit)==FALSE){dir.create(FolderSplit)}
+    
+    
+    #########################################################################
+    # get bell partition information
+    info = infoPartitions(id_part, dataset_name, folderResults)
     
     # data frame
     apagar = c(0)
     y_true = data.frame(apagar)
-    y_pred = data.frame(apagar)  
-    
-    cat("\nFold: ", f)
-    
-    FolderSplit = paste(diretorios$folderResults, "/Partition-", info$numberOfPartition, "/Split-", f, sep="")
+    y_pred = data.frame(apagar)
     
     g = 1
     while(g<=info$numberGroupsOfPartition){
       
-      cat("\n\tGroup: ", g)
+      cat("\n#================#")
+      cat("\n#\tGroup: ", g)   
+      cat("\n#================#")
       
       FolderGroup = paste(FolderSplit, "/Group-", g, sep="")
+      cat("\n", FolderGroup)
       
-      #cat("\nGather y_true ", g, "\n")
-      setwd(FolderGroup)
-      y_true_gr = data.frame(read.csv("y_true.csv"))
+      nome = paste(FolderGroup, "/y_true.csv", sep="")
+      cat("\n", nome)
+      
+      y_true_gr = data.frame(read.csv(nome))
       y_true = cbind(y_true, y_true_gr)
-      #print(nrow(y_true))
       
-      #cat("\nGather y_predict ", g, "\n")
-      y_pred_gr = data.frame(read.csv("y_predict.csv"))
+      nome2 = paste(FolderGroup, "/y_predict.csv", sep="")
+      cat("\n", nome2)
+      
+      y_pred_gr = data.frame(read.csv(nome2))
       y_pred = cbind(y_pred, y_pred_gr)
-      #print(nrow(y_pred))
       
-      # deleting files
+      
+      setwd(FolderGroup)
       unlink("y_true.csv", recursive = TRUE)
       unlink("y_predict.csv", recursive = TRUE)
       unlink("inicioFimRotulos.csv", recursive = TRUE)
@@ -408,30 +427,22 @@ gather <- function(id_part, ds, dataset_name, n, namesLabels, folderResults){
       gc()
     }
     
-    #cat("\nSave files ", g, "\n")
-    FolderSplit = paste(diretorios$folderResults, "/Partition-", info$numberOfPartition, "/Split-", f, sep="")
+    cat("\nSave files ", g, "\n")
     setwd(FolderSplit)
     y_pred = y_pred[,-1]
     y_true = y_true[,-1]
     write.csv(y_pred, "y_predict.csv", row.names = FALSE)
     write.csv(y_true, "y_true.csv", row.names = FALSE)
     
+    #f = f + 1
+    
     gc()
   } # fim do foreach
   
-  retorno$id_part = id_part
-  retorno$ds = ds
-  retorno$dataset_name = dataset_name
-  retorno$number_folds = number_folds
-  retorno$namesLabels = namesLabels
-  retorno$infoPartition = info
-  
-  return(retorno)
-  
   gc()
-  cat("\n##################################################################################################")
-  cat("\n# Gather Predicts: END                                                                           #") 
-  cat("\n##################################################################################################")
+  cat("\n###############################################################")
+  cat("\n# Gather Predicts: END                                        #") 
+  cat("\n###############################################################")
   cat("\n\n\n\n")
   
 } # fim da função
@@ -439,42 +450,64 @@ gather <- function(id_part, ds, dataset_name, n, namesLabels, folderResults){
 
 
 
-##################################################################################################
-# FUNCTION EVALUATION HYBRID PARTITIONS                                                          #
-#   Objective                                                                                    #
-#      Evaluates the hybrid partitions                                                           #
-#   Parameters                                                                                   #
-#       ds: specific dataset information                                                         #
-#       dataset_name: dataset name. It is used to save files.                                    #
-#       number_folds: number of folds created                                                    #
-#       FolderHybrid: path of hybrid partition results                                           #
-#   Return                                                                                       #
-#       Assessment measures for each hybrid partition                                            #
-##################################################################################################
-eval <- function(id_part, ds, dataset_name, number_folds, namesLabels, folderResults){
+###########################################################################
+# FUNCTION EVALUATION HYBRID PARTITIONS                                    
+#   Objective                                                              
+#      Evaluates the hybrid partitions                                     
+#   Parameters                                                             
+#       ds: specific dataset information                                   
+#       dataset_name: dataset name. It is used to save files.              
+#       number_folds: number of folds created                              
+#       FolderHybrid: path of hybrid partition results                     
+#   Return                                                                 
+#       Assessment measures for each hybrid partition                      
+###########################################################################
+eval <- function(id_part, 
+                 ds, 
+                 dataset_name, 
+                 number_folds, 
+                 namesLabels, 
+                 folderResults){
   
-  retorno = list()
-  
-  diretorios = directories(dataset_name, folderResults)
-  
+  diretorios <- directories(dataset_name, folderResults)
   info <- infoPartitions(id_part, dataset_name, folderResults)
+  FolderPartition = paste(diretorios$folderValidate, 
+                          "/Partition-", id_part, sep="")
   
-  # from fold = 1 to number_folder
   f = 1
   evalParal <- foreach(f = 1:number_folds) %dopar%{  
     
-    library("mldr")
-    library("utiml")
     
-    cat("\nFold: ", f)
+    cat("\n#===============================================================#")
+    cat("\n# Fold: ", f)   
+    cat("\n#===============================================================#")
+    
+    #########################################################################
+    FolderRoot = "~/Exhaustive-MiF1-Clus"
+    FolderScripts = "~/Exhaustive-MiF1-Clus/R"
+    
+    
+    #########################################################################
+    # LOAD LIBRARIES
+    setwd(FolderScripts)
+    source("libraries.R") 
+    
+    setwd(FolderScripts)
+    source("utils.R") 
+    
+    #########################################################################
+    FolderSplit = paste(FolderPartition, "/Split-", f, sep="")
+    if(dir.exists(FolderSplit)==FALSE){dir.create(FolderSplit)}
+    
+    
+    #########################################################################
+    # get bell partition information
+    info = infoPartitions(id_part, dataset_name, folderResults)
     
     # data frame
     apagar = c(0)
     confMatPartitions = data.frame(apagar)
     partitions = c()
-    
-    # specifyin folder for the fold
-    FolderSplit = paste(diretorios$folderResults, "/Partition-", info$numberOfPartition, "/Split-", f, sep="")
     
     # get the true and predict lables
     setwd(FolderSplit)
@@ -509,49 +542,46 @@ eval <- function(id_part, ds, dataset_name, number_folds, namesLabels, folderRes
     gc()
   } # end folds
   
-  retorno$id_part = id_part
-  retorno$ds = ds
-  retorno$dataset_name = dataset_name
-  retorno$number_folds = number_folds
-  retorno$namesLabels = namesLabels
-  retorno$infoPartition = info
-  
-  return(retorno)
-  
   gc()
-  cat("\n##################################################################################################")
-  cat("\n# Evaluation Folds: END                                                                          #")
-  cat("\n##################################################################################################")
+  cat("\n##################################################################")
+  cat("\n# Evaluation Folds: END                                          #")
+  cat("\n##################################################################")
   cat("\n\n\n\n")
 }
 
 
-##################################################################################################
-# FUNCTION GATHER EVALUATIONS                                                                    #
-#   Objective                                                                                    #
-#       Gather metrics for all folds                                                             #
-#   Parameters                                                                                   #
-#       ds: specific dataset information                                                         #
-#       dataset_name: dataset name. It is used to save files.                                    #
-#       number_folds: number of folds created                                                    #
-#       FolderHybrid: path of hybrid partition results                                           #
-#   Return                                                                                       #
-#       Assessment measures for all folds                                                        #
-##################################################################################################
-gatherEvaluation <- function(id_part, ds, dataset_name, number_folds, namesLabels, folderResults){  
+##########################################################################
+# FUNCTION GATHER EVALUATIONS                                             
+#   Objective                                                             
+#       Gather metrics for all folds                                      
+#   Parameters                                                            
+#       ds: specific dataset information                                  
+#       dataset_name: dataset name. It is used to save files.             
+#       number_folds: number of folds created                             
+#       FolderHybrid: path of hybrid partition results                    
+#   Return                                                                
+#       Assessment measures for all folds                                 
+##########################################################################
+gatherEvaluation <- function(id_part, 
+                             ds, 
+                             dataset_name, 
+                             number_folds, 
+                             namesLabels, 
+                             folderResults){  
   
-  retorno = list()
   
-  diretorios = directories(dataset_name, folderResults)
-  
+  diretorios <- directories(dataset_name, folderResults)
   info <- infoPartitions(id_part, dataset_name, folderResults)
-  
-  FolderPartition = paste(diretorios$folderResults, "/Partition-", info$numberOfPartition, sep="")
+  FolderPartition = paste(diretorios$folderValidate, 
+                          "/Partition-", id_part, sep="")
   
   # vector with names
-  measures = c("accuracy","average-precision","clp","coverage","F1","hamming-loss","macro-AUC",
-               "macro-F1","macro-precision","macro-recall","margin-loss","micro-AUC","micro-F1",
-               "micro-precision","micro-recall","mlp","one-error","precision","ranking-loss",
+  measures = c("accuracy","average-precision","clp","coverage","F1",
+               "hamming-loss","macro-AUC",
+               "macro-F1","macro-precision","macro-recall","margin-loss",
+               "micro-AUC","micro-F1",
+               "micro-precision","micro-recall","mlp","one-error","precision",
+               "ranking-loss",
                "recall","subset-accuracy","wlp")
   # data frame
   apagar = c(0)
@@ -577,9 +607,6 @@ gatherEvaluation <- function(id_part, ds, dataset_name, number_folds, namesLabel
     #names(avaliado4)[f+1] = paste("Fold-", f, sep="")
     nomesFolds[f] = paste("Fold-", f, sep="")
     
-    setwd(FolderSplit)
-    unlink(str)
-    
     f = f + 1
     gc()
     
@@ -589,158 +616,246 @@ gatherEvaluation <- function(id_part, ds, dataset_name, number_folds, namesLabel
   avaliado4$apagar = measures
   colnames(avaliado4) = c("measures", nomesFolds)
   
-  setwd(info$FolderPartition)
-  nome3 = paste(dataset_name, "-Partition-", info$numberOfPartition, "-Evaluated.csv", sep="")
+  setwd(diretorios$folderValidate)
+  nome3 = paste(dataset_name, "-Partition-", 
+                info$numberOfPartition, "-Evaluated.csv", sep="")
   write.csv(avaliado4, nome3, row.names = FALSE)
   
-  setwd(diretorios$folderResults)
+  setwd(FolderPartition)
+  nome3 = paste(dataset_name, "-Partition-", 
+                info$numberOfPartition, "-Evaluated.csv", sep="")
   write.csv(avaliado4, nome3, row.names = FALSE)
-  
-  setwd(diretorios$folderReVal)
-  write.csv(avaliado4, nome3, row.names = FALSE)
-  
-  retorno$id_part = id_part
-  retorno$ds = ds
-  retorno$dataset_name = dataset_name
-  retorno$number_folds = number_folds
-  retorno$namesLabels = namesLabels
-  retorno$infoPartition = info
-  retorno$evaluated10F = avaliado4
-  
-  return(retorno)
   
   gc()
-  cat("\n##################################################################################################")
-  cat("\n# Evaluated Partition: END                                                                       #")
-  cat("\n##################################################################################################")
+  cat("\n#################################################################")
+  cat("\n# Evaluated Partition: END                                      #")
+  cat("\n#################################################################")
   cat("\n\n\n\n")
 }
 
 
-##################################################################################################
-# n_dataset: number of the dataset in the "datasets.csv"                                         #
-# number_cores: number of cores to paralell                                                      #
-# number_folds: number of folds for cross validation                                             # 
-##################################################################################################
-validation <- function(number_dataset, number_cores, number_folds, id_part, folderResults){
+######################################################################
+# n_dataset: number of the dataset in the "datasets.csv"             #
+# number_cores: number of cores to paralell                          #
+# number_folds: number of folds for cross validation                 # 
+######################################################################
+validation <- function(id_part,
+                       ds,
+                       dataset_name,
+                       number_dataset,
+                       number_cores,
+                       number_folds,
+                       folderResults){
   
   diretorios <- directories(dataset_name, folderResults)
   
   if(number_cores == 0){
-    cat("\nZero is a disallowed value for number_cores. Please choose a value greater than or equal to 1.")
+    
+    cat("\n\n##########################################################")
+    cat("\n# Zero is a disallowed value for number_cores. Please      #")
+    cat("\n# choose a value greater than or equal to 1.               #")
+    cat("\n############################################################\n\n")
+    
   } else {
+    
     cl <- parallel::makeCluster(number_cores)
     doParallel::registerDoParallel(cl)
     print(cl)
     
     if(number_cores==1){
-      cat("\n\n################################################################################################")
-      cat("\n# Running Sequentially!                                                                          #")
-      cat("\n##################################################################################################\n\n") 
+      cat("\n\n##########################################################")
+      cat("\n# Running Sequentially!                                    #")
+      cat("\n############################################################\n\n")
     } else {
-      cat("\n\n################################################################################################")
-      cat("\n# Running in parallel with ", number_cores, " cores!                                             #")
-      cat("\n##################################################################################################\n\n") 
+      cat("\n\n############################################################")
+      cat("\n# Running in parallel with ", number_cores, " cores!         #")
+      cat("\n##############################################################\n\n")
     }
   }
   cl = cl
   
   retorno = list()
   
-  cat("\n\n################################################################################################")
-  cat("\n# Run Validation: Get dataset information: ", number_dataset, "                                  #")
-  ds = datasets[number_dataset,]
-  names(ds)[1] = "Id"
-  dataset_name = toString(ds$Name)
-  cat("\n# Dataset: ", dataset_name, "                                                                     #")   
-  cat("\n\n#################################################################################################")
   
+  cat("\n\n#############################################################")
+  cat("\n# Run Validation: Get names labels                            #")
+  cat("\n###############################################################\n\n")
   setwd(diretorios$folderNamesLabels)
   arquivo = paste(dataset_name, "-NamesLabels.csv", sep="")
   namesLabels = data.frame(read.csv(arquivo))
   colnames(namesLabels) = c("id", "labels")
   namesLabels = c(namesLabels$labels)
   
-  cat("\n\n################################################################################################")
-  cat("\nRun Validation: Get bell partition information                                                   #")
+  
+  cat("\n\n#############################################################")
+  cat("\n# Run Validation: Get bell partition information              #")
+  cat("\n###############################################################\n\n")
   info <- infoPartitions(id_part, dataset_name, folderResults)
-  cat("\n\n################################################################################################")
   
-  cat("\n\n################################################################################################")
-  cat("\n# Run Validation: Build and Test Bell Partitions                                                 #")
-  timeComPart = system.time(resPart <- validationEP(id_part, ds, dataset_name, number_folds, namesLabels, folderResults)) 
-  cat("\n\n################################################################################################")
+  FolderPartition = paste(diretorios$folderValidate, 
+                          "/Partition-", id_part, sep="")
   
-  cat("\n\n################################################################################################")
-  cat("\n# Run Validation: Matrix Correlation                                                             #")
-  timeGather = system.time(resGather <- gather(id_part, ds, dataset_name, number_folds, namesLabels, folderResults)) 
-  cat("\n\n################################################################################################")
   
-  cat("\n\n################################################################################################")
-  cat("\n# Run Validation: Evaluation Fold                                                                #")
-  timeEval = system.time(resEval <- eval(id_part, ds, dataset_name, number_folds, namesLabels, folderResults)) 
-  cat("\n\n################################################################################################")
+  cat("\n\n###############################################################")
+  cat("\n# Run Validation: Build and Validate Bell Partition             #")
+  cat("\n###############################################################\n\n")
+  timeComPart = system.time(resPart <- validationEP(id_part, 
+                                                    ds, 
+                                                    dataset_name, 
+                                                    number_folds, 
+                                                    namesLabels, 
+                                                    folderResults)) 
   
-  cat("\n\n################################################################################################")
-  cat("\n# Run Validation: Gather Evaluation                                                              #")
-  timeGE = system.time(resGE <- gatherEvaluation(id_part, ds, dataset_name, number_folds, namesLabels, folderResults)) 
-  cat("\n\n################################################################################################")
   
-  cat("\n\n################################################################################################")
-  cat("\n# Run Validation: Save Runtime                                                                   #")
+  cat("\n\n###############################################################")
+  cat("\n# Run Validation: Matrix Correlation                            #")
+  cat("\n###############################################################\n\n")
+  timeGather = system.time(resGather <- gather(id_part, 
+                                               ds, 
+                                               dataset_name, 
+                                               number_folds, 
+                                               namesLabels, 
+                                               folderResults)) 
+
+  
+  cat("\n\n###############################################################")
+  cat("\n# Run Validation: Evaluation Fold                               #")
+  cat("\n###############################################################\n\n")
+  timeEval = system.time(resEval <- eval(id_part, 
+                                         ds, 
+                                         dataset_name, 
+                                         number_folds, 
+                                         namesLabels, 
+                                         folderResults)) 
+
+  
+  cat("\n\n###############################################################")
+  cat("\n# Run Validation: Gather Evaluation                             #")
+  cat("\n###############################################################\n\n")
+  timeGE = system.time(resGE <- gatherEvaluation(id_part, 
+                                                 ds, 
+                                                 dataset_name, 
+                                                 number_folds, 
+                                                 namesLabels, 
+                                                 folderResults)) 
+  
+  
+  cat("\n\n###############################################################")
+  cat("\n# Run Validation: Save Runtime                                  #")
+  cat("\n###############################################################\n\n")
   Runtime = rbind(timeComPart, timeGather, timeEval, timeGE)
-  setwd(info$FolderPartition)
-  name2 = paste("Partition-", info$numberOfPartition ,"-Runtime-Validation-Exhaustive.csv", sep="")
+  setwd(FolderPartition)
+  name2 = paste("Partition-", info$numberOfPartition, 
+                "-Runtime-Val-Exhaustive.csv", sep="")
   write.csv(Runtime, name2, row.names = FALSE)
-  cat("\n\n################################################################################################")
+
   
-  cat("\n\n################################################################################################")
-  cat("\n# Run Validation: Stop Parallel                                                                  #")
+  cat("\n\n###############################################################")
+  cat("\n# Run Validation: Stop Parallel                                 #")
+  cat("\n###############################################################\n\n")
   parallel::stopCluster(cl) 
-  cat("\n\n################################################################################################")
+
   
   gc()
 }
 
-
-validateRUN <- function(number_dataset, number_cores, number_folds, folderResults){
+###############################################################################
+#
+###############################################################################
+validateRUN <- function(ds,
+                        dataset_name,
+                        number_dataset,
+                        number_cores,
+                        number_folds,
+                        folderResults){
   
+  # get folders
   diretorios <- directories(dataset_name, folderResults)
+  
+  # get the bell partition information
+  setwd(diretorios$folderBellPartDataset)
+  str_ = paste(dataset_name, "-groupsPerPartitions.csv", sep = "")
+  bell = data.frame(read.csv(str_))
+  n_bell = nrow(bell)
   
   # from partition 2 to last partition (n)
   count = 2
   id_part = 2
   while(id_part<=n_bell){
     
-    cat("\nPARTITION: ", id_part, "\n")
+    cat("\n\n###########################################################")
+    cat("\n# PARTITION: ", id_part, "                                  #")
+    cat("\n\n###########################################################\n\n")
     
-    cat("\nVALIDATION: Execute exhaustive experiment\n")
-    timeEP = system.time(resEPVAL <- validation(number_dataset, number_cores, number_folds, id_part, folderResults))
-    print(timeEP)
+    cat("\ncreate the specific folder")
+    FolderPartition = paste(diretorios$folderValidate, 
+                            "/Partition-", id_part, sep="")
+    if(dir.exists(FolderPartition)==FALSE){dir.create(FolderPartition)}
     
+    cat("\ninfo")
     info <- infoPartitions(id_part, dataset_name, folderResults)
     
-    cat("\nVALIDATION: Save results in RS format\n")
-    str1a <- paste(dataset_name, "-Partition-", id_part, "-Results-Validation.rds", sep="")
-    setwd(info$FolderPartition)
-    save(resEPVAL, file = str1a)
+    cat("\n\n###########################################################")
+    cat("\n# VALIDATE-RUN: Execute exhaustive experiment               #\n")
+    cat("\n#############################################################\n\n")
+    timeEP = system.time(resEPVAL <- validation(id_part,
+                                                ds,
+                                                dataset_name,
+                                                number_dataset,
+                                                number_cores,
+                                                number_folds,
+                                                folderResults))
     
-    cat("\nVALIDATION: Save results in RDATA format\n")
-    str2a <- paste(dataset_name, "-Partition-", id_part, "-Results-Validation.RData", sep="")
-    setwd(info$FolderPartition)
-    save(resEPVAL, file = str2a)
+    result_set <- t(data.matrix(timeEP))
+    nome = paste(diretorios$folderValidate,
+                 "/Partition-", id_part,
+                 "/Partition-", id_part,
+                 "-Runtime.csv", sep="")
+    write.csv(result_set, nome)
     
-    cat("\nVALIDATION: Compress folders and files")
-    str3a <- paste("tar -zcvf ", diretorios$folderResults, "/", dataset_name, "-Partition-", id_part, "-validation-results.tar.gz ", info$FolderPartition, sep="")
+    
+    cat("\n\n################################################################")
+    cat("\n# COPY VALIDATION TO GOOGLE DRIVE                                #")
+    cat("\n##################################################################\n\n")
+    origem = FolderPartition
+    destino = paste("nuvem:Clus/Exhaustive/MiF1/",
+                    dataset_name, "/Validation/Partition-", id_part, sep = "")
+    comando = paste("rclone -P copy ", origem, " ", destino, sep = "")
+    cat("\n", comando, "\n")
+    a = print(system(comando))
+    a = as.numeric(a)
+    if (a != 0) {
+      stop("Erro RCLONE")
+      quit("yes")
+    }
+    
+    
+    
+    cat("\n\n###########################################################")
+    cat("\n# VALIDATE: Compress folders and files                      #")
+    cat("\n#############################################################\n\n")
+    str3a <- paste("tar -zcvf ", FolderPartition, "/",
+                   dataset_name, "-Partition-", id_part,
+                   "-validation-results.tar.gz ", FolderPartition, 
+                   sep="")
     system(str3a)
     
-    cat("\nVALIDATION: Copy zip file to the root results folder\n")
-    str5a = paste("cp ", diretorios$folderResults, "/", dataset_name, "-Partition-", id_part, "-validation-results.tar.gz ", diretorios$folderReVal, sep="")
+    
+    cat("\n\n###########################################################")
+    cat("\n# VALIDATE: Copy zip file to the root results folder        #")
+    cat("\n#############################################################\n\n")
+    str5a = paste("cp ", FolderPartition, 
+                  "/", dataset_name, "-Partition-", id_part, 
+                  "-validation-results.tar.gz ", 
+                  diretorios$folderReportsD, sep="")
     system(str5a)
     
-    cat("\nVALIDATION: Delete all files")
-    str3 = paste("rm -r ", diretorios$folderResults, "/Partition-",id_part , sep="")
-    system(str3)
+    
+    cat("\n\n###########################################################")
+    cat("\n# VALIDATE: Delete all files                                #")
+    cat("\n#############################################################\n\n")
+    str3b = paste("rm -r ", FolderPartition, sep="")
+    system(str3b)
     
     # count
     id_part = id_part + 1
@@ -752,7 +867,7 @@ validateRUN <- function(number_dataset, number_cores, number_folds, folderResult
 }
 
 
-##################################################################################################
-# Please, any errors, contact us: elainececiliagatto@gmail.com                                   #
-# Thank you very much!                                                                           #
-##################################################################################################
+#######################################################################
+# Please, any errors, contact us: elainececiliagatto@gmail.com      
+# Thank you very much!                                              
+####################################################################

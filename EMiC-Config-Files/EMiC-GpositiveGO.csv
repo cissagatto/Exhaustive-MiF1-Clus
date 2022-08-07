@@ -1,0 +1,8 @@
+Config, Value
+Dataset_Path, ~/Exhaustive-MiF1-Clus/Datasets
+Temporary_Path, /dev/shm/ex-GpositiveGO
+Partitions_Path, ~/Exhaustive-MiF1-Clus/BellPartitions
+dataset_name, GpositiveGO
+number_dataset, 42
+number_folds, 10
+number_cores, 1
